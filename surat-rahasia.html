@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Surat Rahasia untuk Syella</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  body {
+    background: linear-gradient(135deg, #fceaff, #ffd6f0);
+    font-family: 'Poppins', sans-serif;
+    color: #4b2350;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 20px;
+  }
+  .envelope {
+    width: 440px;
+    height: 280px;
+    background: #f6e1f1;
+    border-radius: 25px 25px 15px 15px;
+    box-shadow: 0 10px 25px rgba(139, 0, 139, 0.35);
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.6s ease;
+  }
+  .envelope:hover {
+    transform: scale(1.05);
+  }
+  .flap {
+    width: 440px;
+    height: 160px;
+    background: #c377d4;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 25px 25px 0 0;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transition: transform 1s ease;
+    transform-origin: top center;
+    box-shadow: inset 0 6px 8px rgba(255,255,255,0.3);
+  }
+  .envelope.open .flap {
+    transform: rotateX(180deg);
+  }
+  .letter {
+    position: absolute;
+    top: 30px;
+    left: 25px;
+    width: 390px;
+    height: 210px;
+    background: #fff0f7;
+    border-radius: 18px;
+    padding: 25px 30px;
+    box-shadow: 0 8px 18px rgba(139, 0, 139, 0.4);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease 0.7s, transform 0.8s ease 0.7s;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #5a1a6a;
+    overflow-y: auto;
+    user-select: none;
+  }
+  .envelope.open .letter {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .instruction {
+    position: absolute;
+    bottom: -40px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #a04ea0;
+    font-style: italic;
+    user-select: none;
+  }
+  button.back-btn {
+    margin-top: 25px;
+    background: #c377d4;
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 12px 32px;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(139, 0, 139, 0.45);
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+    user-select: none;
+  }
+  button.back-btn:hover {
+    background: #8a2be2;
+  }
+</style>
+</head>
+<body>
+  <div class="envelope" id="envelope" tabindex="0" role="button" aria-label="Amplop surat rahasia">
+    <div class="flap"></div>
+    <div class="letter">
+      <p>Sayang Syella,<br><br>
+      Aku ingin kau tahu bahwa setiap hari bersamamu adalah anugerah terindah dalam hidupku.<br>
+      Terima kasih sudah menjadi cahaya di hatiku.<br><br>
+      Dengan cinta, Roma 💜</p>
+    </div>
+    <div class="instruction">Klik amplop untuk membuka surat rahasia</div>
+  </div>
+
+  <button class="back-btn" onclick="location.href='index.html'">Kembali</button>
+
+<script>
+  const envelope = document.getElementById('envelope');
+  envelope.addEventListener('click', () => {
+    envelope.classList.toggle('open');
+  });
+</script>
+<iframe
+  id="ytplayer"
+  type="text/html"
+  width="0"
+  height="0"
+  src="https://www.youtube.com/embed/koZK67e1C-U?autoplay=1&loop=1&playlist=koZK67e1C-U"
+  frameborder="0"
+  allow="autoplay"
+></iframe>
+
+
+</body>
+</html>

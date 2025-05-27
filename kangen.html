@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Peluk Virtual Untuk Syella ❤️</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(ellipse at center, #0f0f1c 0%, #000000 100%);
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .hologram {
+      position: relative;
+      text-align: center;
+      color: #00f0ff;
+      text-shadow: 0 0 10px #00f0ff;
+      animation: flicker 2s infinite;
+      opacity: 0.9;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.6; }
+    }
+
+    .avatar {
+      width: 180px;
+      border-radius: 50%;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+      transition: transform 0.5s;
+    }
+
+    .hug-button,
+    .audio-button {
+      margin-top: 20px;
+      background-color: transparent;
+      border: 2px solid #00f0ff;
+      padding: 10px 20px;
+      color: #00f0ff;
+      cursor: pointer;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: background-color 0.3s, transform 0.3s;
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    .hug-button:hover,
+    .audio-button:hover {
+      background-color: rgba(0, 240, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    .arms {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .arm {
+      width: 120px;
+      height: 120px;
+      background: url('https://github.com/romadhoni04/Pendataan-Buku/raw/main/assets/photo6.jpg') no-repeat center center / contain;
+      animation: hugmove 1s ease-in-out forwards;
+    }
+
+    @keyframes hugmove {
+      from { transform: scale(0) rotate(0deg); }
+      to { transform: scale(1.1) rotate(20deg); }
+    }
+
+    .love {
+      position: absolute;
+      font-size: 30px;
+      animation: floatUp 2s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-100px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hologram">
+    <img src="https://raw.githubusercontent.com/romadhoni04/clarista/main/fotosaya1.jpg" alt="Wajah Roma" class="avatar" />
+    <h1>Peluk Virtual Untuk Syella ❤️</h1>
+
+    <button class="hug-button" onclick="startHug()">🤗 Klik untuk Dipeluk</button>
+    <button class="audio-button" onclick="toggleAudio()" id="audioBtn">⏸ Pause Musik</button>
+
+    <div class="arms" id="arms">
+      <div class="arm"></div>
+    </div>
+  </div>
+
+  <!-- Musik -->
+  <audio id="loveAudio" loop>
+    <source src="assets/lagu-kangen1.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    function startHug() {
+      const arms = document.getElementById('arms');
+      arms.style.display = 'flex';
+      createLove();
+      setTimeout(() => arms.style.display = 'none', 2000);
+    }
+
+    function createLove() {
+      for (let i = 0; i < 10; i++) {
+        const love = document.createElement('div');
+        love.classList.add('love');
+        love.style.left = Math.random() * 100 + 'vw';
+        love.style.top = '50%';
+        love.textContent = '❤️';
+        document.body.appendChild(love);
+        setTimeout(() => love.remove(), 2000);
+      }
+    }
+
+    // Musik play/pause
+    const audio = document.getElementById("loveAudio");
+    const btn = document.getElementById("audioBtn");
+
+    window.addEventListener("DOMContentLoaded", () => {
+      audio.play().catch(() => {
+        btn.innerText = "▶️ Play Musik";
+      });
+    });
+
+    function toggleAudio() {
+      if (audio.paused) {
+        audio.play();
+        btn.innerText = "⏸ Pause Musik";
+      } else {
+        audio.pause();
+        btn.innerText = "▶️ Play Musik";
+      }
+    }
+  </script>
+
+</body>
+</html>

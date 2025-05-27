@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Puzzle Foto Berdua - Syella & Roma</title>
+<style>
+  /* Reset dan font */
+  body {
+    background: linear-gradient(135deg, #f9e6ff, #ffd6f0);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #6a0dad;
+    text-align: center;
+    padding: 30px 15px;
+    margin: 0;
+  }
+  h1 {
+    font-size: 2.4rem;
+    margin-bottom: 5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 8px #d18dde;
+  }
+  p.subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    color: #a04abb;
+    font-style: italic;
+  }
+  #puzzle-container {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 6px;
+    justify-content: center;
+    margin: 0 auto 25px auto;
+    padding: 10px;
+    background-color: #fce4fc;
+    border: 3px solid #b85dcc;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(184, 92, 204, 0.5);
+    user-select: none;
+    width: max-content;
+  }
+  .puzzle-piece {
+    width: 100px;
+    height: 100px;
+    border-radius: 15px;
+    border: 2px solid #dba0e8;
+    background-image: url('assets/syella-roma.jpg');
+    background-size: 300px 300px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(138, 43, 226, 0.5);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .puzzle-piece:hover {
+    box-shadow: 0 4px 16px rgba(234, 103, 182, 0.9);
+    transform: scale(1.05);
+  }
+  .puzzle-piece:focus {
+    outline: none;
+    box-shadow: 0 0 10px 3px #e60073;
+  }
+  .selected {
+    outline: 3px solid #e60073;
+    box-shadow: 0 0 14px 4px #e60073;
+  }
+  #puzzle-msg {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #b30059;
+    min-height: 2em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 6px #ff66c4;
+  }
+  button {
+    background: linear-gradient(135deg, #d16ba5, #c777b9);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    padding: 12px 28px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(193, 72, 130, 0.6);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  button:hover {
+    background: linear-gradient(135deg, #e94db3, #da59c7);
+    box-shadow: 0 8px 20px rgba(255, 102, 181, 0.8);
+  }
+</style>
+</head>
+<body>
+  <h1>Puzzle Foto Berdua</h1>
+  <p class="subtitle">Geser potongan foto Syella & Roma sampai benar ya!</p>
+
+  <div id="puzzle-container" aria-label="Puzzle Foto Berdua" role="grid" tabindex="0"></div>
+  <p id="puzzle-msg" aria-live="polite" aria-atomic="true"></p>
+
+  <button onclick="window.location.href='index.html'">Kembali</button>
+
+
+  <script>
+    const PUZZLE_ROWS = 3;
+    const PUZZLE_COLS = 3;
+
+    const puzzleContainer = document.getElementById('puzzle-container');
+    const puzzleMsg = document.getElementById('puzzle-msg');
+
+    let correctOrder = [];
+    let currentOrder = [];
+
+    function createPuzzle() {
+      puzzleContainer.innerHTML = '';
+      puzzleMsg.textContent = '';
+
+      correctOrder = Array.from(Array(PUZZLE_ROWS * PUZZLE_COLS).keys());
+      currentOrder = [...correctOrder];
+      shuffleArray(currentOrder);
+
+      currentOrder.forEach((pieceIndex, i) => {
+        const piece = document.createElement('div');
+        piece.classList.add('puzzle-piece');
+        piece.style.backgroundPosition = `-${(pieceIndex % PUZZLE_COLS) * 100}px -${Math.floor(pieceIndex / PUZZLE_COLS) * 100}px`;
+
+        piece.dataset.index = pieceIndex;
+        piece.dataset.position = i;
+
+        piece.setAttribute('tabindex', '0');
+        piece.setAttribute('role', 'gridcell');
+        piece.setAttribute('aria-label', `Potongan puzzle nomor ${i + 1}`);
+
+        piece.addEventListener('click', onPieceClick);
+        piece.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onPieceClick(e);
+          }
+        });
+
+        puzzleContainer.appendChild(piece);
+      });
+    }
+
+    let firstClick = null;
+
+    function onPieceClick(e) {
+      const clicked = e.currentTarget;
+
+      if (!firstClick) {
+        firstClick = clicked;
+        clicked.classList.add('selected');
+      } else if (firstClick === clicked) {
+        firstClick.classList.remove('selected');
+        firstClick = null;
+      } else {
+        swapPieces(firstClick, clicked);
+        firstClick.classList.remove('selected');
+        firstClick = null;
+
+        if (checkWin()) {
+          puzzleMsg.textContent = '🎉 Yeay, kamu berhasil menyusun puzzle!';
+        } else {
+          puzzleMsg.textContent = '';
+        }
+      }
+    }
+
+    function swapPieces(piece1, piece2) {
+      const pos1 = piece1.dataset.position;
+      const pos2 = piece2.dataset.position;
+
+      piece1.dataset.position = pos2;
+      piece2.dataset.position = pos1;
+
+      const children = Array.from(puzzleContainer.children);
+      children.sort((a, b) => a.dataset.position - b.dataset.position);
+      children.forEach(child => puzzleContainer.appendChild(child));
+    }
+
+    function checkWin() {
+      const pieces = puzzleContainer.children;
+      for (let i = 0; i < pieces.length; i++) {
+        if (parseInt(pieces[i].dataset.index) !== i) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    createPuzzle();
+  </script>
+</body>
+</html>
