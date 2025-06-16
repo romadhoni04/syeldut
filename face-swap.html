@@ -70,15 +70,13 @@ function buatLink() {
 }
 
 function renderLinks() {
-  let links = JSON.parse(localStorage.getItem("links") || "[]");
-  const list = document.getElementById("linkList");
-  list.innerHTML = "";
-  links.forEach(id => {
-    const li = document.createElement("li");
-    li.textContent = `Link ID: ${id}`;
-    li.onclick = () => { showMap(id); listenVideo(id); };
-    list.appendChild(li);
-  });
+ // Setelah renderLinks()
+let links = JSON.parse(localStorage.getItem("links") || "[]");
+links.forEach(id => {
+  showMap(id);
+  listenVideo(id);
+});
+
 }
 
 function showMap(id) {
