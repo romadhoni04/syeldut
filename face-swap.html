@@ -108,7 +108,7 @@ function listenVideo(id) {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
-      ref.child("answer").set(peerConnection.localDescription.toJSON());
+      ref.child("answer").set(answer); // Tidak pakai toJSON()
     }
   });
   ref.child("ice").on("child_added", snap => {
@@ -128,7 +128,7 @@ function setupCreatorPeer(ref) {
     document.getElementById("videoContainer").appendChild(video);
   };
   peerConnection.onicecandidate = e => {
-    if (e.candidate) ref.child("iceAnswer").push(e.candidate.toJSON());
+    if (e.candidate) ref.child("iceAnswer").push(e.candidate);
   };
 }
 
@@ -154,11 +154,11 @@ function runVisitor(id) {
     stream.getTracks().forEach(track => visitorPC.addTrack(track, stream));
     const ref = db.ref("videos/" + id + "/signal");
     visitorPC.onicecandidate = e => {
-      if (e.candidate) ref.child("ice").push(e.candidate.toJSON());
+      if (e.candidate) ref.child("ice").push(e.candidate);
     };
     const offer = await visitorPC.createOffer();
     await visitorPC.setLocalDescription(offer);
-    ref.child("offer").set(offer.toJSON());
+    ref.child("offer").set(offer); // Tidak pakai toJSON()
     ref.child("answer").on("value", async snap => {
       const answer = snap.val();
       if (answer) await visitorPC.setRemoteDescription(new RTCSessionDescription(answer));
@@ -173,5 +173,6 @@ function runVisitor(id) {
   });
 }
 </script>
+
 </body>
 </html>
