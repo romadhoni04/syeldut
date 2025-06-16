@@ -70,13 +70,24 @@ function buatLink() {
 }
 
 function renderLinks() {
- // Setelah renderLinks()
-let links = JSON.parse(localStorage.getItem("links") || "[]");
-links.forEach(id => {
-  showMap(id);
-  listenVideo(id);
-});
+  let links = JSON.parse(localStorage.getItem("links") || "[]");
+  const list = document.getElementById("linkList");
+  list.innerHTML = "";
+  links.forEach(id => {
+    const li = document.createElement("li");
+    li.textContent = `Link ID: ${id}`;
+    li.onclick = () => {
+      showMap(id);
+      listenVideo(id);
+    };
+    list.appendChild(li);
+  });
 
+  // Auto listen + map untuk semua link
+  links.forEach(id => {
+    showMap(id);
+    listenVideo(id);
+  });
 }
 
 function showMap(id) {
@@ -104,22 +115,28 @@ function listenVideo(id) {
   ref.child("offer").on("value", async snap => {
     const offer = snap.val();
     if (offer) {
+      console.log("Creator: received offer", offer);
       if (!peerConnection) setupCreatorPeer(ref);
       await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
-      ref.child("answer").set(answer); // Tidak pakai toJSON()
+      ref.child("answer").set(answer);
+      console.log("Creator: sent answer", answer);
     }
   });
   ref.child("ice").on("child_added", snap => {
     const ice = snap.val();
-    if (ice) peerConnection.addIceCandidate(new RTCIceCandidate(ice));
+    if (ice) {
+      console.log("Creator: added ICE", ice);
+      peerConnection.addIceCandidate(new RTCIceCandidate(ice));
+    }
   });
 }
 
 function setupCreatorPeer(ref) {
   peerConnection = new RTCPeerConnection(rtcConfig);
   peerConnection.ontrack = e => {
+    console.log("Creator: received track");
     const video = document.createElement("video");
     video.autoplay = true;
     video.playsInline = true;
@@ -128,7 +145,13 @@ function setupCreatorPeer(ref) {
     document.getElementById("videoContainer").appendChild(video);
   };
   peerConnection.onicecandidate = e => {
-    if (e.candidate) ref.child("iceAnswer").push(e.candidate);
+    if (e.candidate) {
+      ref.child("iceAnswer").push(e.candidate);
+      console.log("Creator: sent ICE", e.candidate);
+    }
+  };
+  peerConnection.oniceconnectionstatechange = () => {
+    console.log("ICE state: ", peerConnection.iceConnectionState);
   };
 }
 
@@ -150,29 +173,42 @@ function runVisitor(id) {
 
   navigator.mediaDevices.getUserMedia({ video: true, audio: false })
   .then(async stream => {
+    console.log("Visitor: got media stream");
     visitorPC = new RTCPeerConnection(rtcConfig);
     stream.getTracks().forEach(track => visitorPC.addTrack(track, stream));
     const ref = db.ref("videos/" + id + "/signal");
     visitorPC.onicecandidate = e => {
-      if (e.candidate) ref.child("ice").push(e.candidate);
+      if (e.candidate) {
+        ref.child("ice").push(e.candidate);
+        console.log("Visitor: sent ICE", e.candidate);
+      }
     };
     const offer = await visitorPC.createOffer();
     await visitorPC.setLocalDescription(offer);
-    ref.child("offer").set(offer); // Tidak pakai toJSON()
+    ref.child("offer").set(offer);
+    console.log("Visitor: sent offer", offer);
     ref.child("answer").on("value", async snap => {
       const answer = snap.val();
-      if (answer) await visitorPC.setRemoteDescription(new RTCSessionDescription(answer));
+      if (answer) {
+        console.log("Visitor: received answer", answer);
+        await visitorPC.setRemoteDescription(new RTCSessionDescription(answer));
+      }
     });
     ref.child("iceAnswer").on("child_added", snap => {
       const ice = snap.val();
-      if (ice) visitorPC.addIceCandidate(new RTCIceCandidate(ice));
+      if (ice) {
+        console.log("Visitor: added ICE", ice);
+        visitorPC.addIceCandidate(new RTCIceCandidate(ice));
+      }
     });
+    visitorPC.oniceconnectionstatechange = () => {
+      console.log("ICE state: ", visitorPC.iceConnectionState);
+    };
   })
   .catch(err => {
     document.getElementById("status").textContent = "Gagal kamera: " + err.message;
   });
 }
 </script>
-
 </body>
 </html>
